@@ -64,3 +64,98 @@ beta_dist(0.1, 0.02, 0.2, ci_width=0.5)
 
 
 # 2 Practical session (2): predictions and decisions ----
+install.packages("BiocManager")
+BiocManager::install("Biobase")
+install.packages("TailRank")
+library(TailRank)
+
+## 1 ----
+### (a) ----
+10
+
+### (b) ----
+1 - pbb(20, 100, a, b)
+
+### (c) ----
+qbb(c(0.025, 0.975), 100, a, b)
+
+## 2 ----
+R <- 200000
+theta <- rbeta(R, a, b)
+y_pred <- rbinom(R, 100, theta)
+mean(y_pred > 20)
+mean(c(18, 19, 21) > 20)
+mean(c(FALSE, FALSE, TRUE))
+mean(c(0, 0, 1))
+(mcse <- sd(y_pred > 20) / sqrt(R))
+quantile(y_pred, c(0.025, 0.975))
+
+## 3 -----
+
+nsim <- 100000
+p_old <- rbeta(nsim, a, b)
+odds_old <- p_old / (1 - p_old)
+
+log_or <- rnorm(nsim, 1, 1)
+or <- exp(log_or)
+
+odds_new <- odds_old * or
+p_new <- odds_new / (1 + odds_new)
+
+mean(p_old)
+mean(p_new)
+quantile(p_new, c(0.025, 0.975))
+
+## 4 ----
+### (a) ----
+1 - pnorm(145, mean=120, sd = sqrt(10^2 + 8^2))
+
+### (b) ----
+qgamma(c(0.025, 0.975), 16, 2)
+
+### (c) ----
+R <- 100000
+sigma_rep <- rgamma(R, 16, 2)
+X_rep <- rnorm(R, mean=120, sd=sqrt(10^2 + sigma_rep^2))
+mean(X_rep > 145)
+
+c(
+  sd_fixed = sqrt(10^2 + 8^2),
+  sd_uncertain = sd(X_rep)
+)
+# 3 Practical session (3): introduction to JAGS ----
+# install.packages("rjags")
+library(rjags)
+
+## 1 Defining and supplying a model ----
+
+mod <- "
+model {
+  pop_size <- 100
+  theta ~ dbeta(4.168, 37.515)
+  cases_pred ~ dbinom(theta, pop_size)
+}
+"
+mod_jag <- jags.model(textConnection(mod), data=NULL)
+
+# or another way
+mod_file <- tempfile()
+mod_file
+
+cat(mod, file=mod_file)
+mod_jag <- jags.model(mod_file, data=NULL)
+
+## 2 Sampling from a model ----
+### (a) ----
+
+### (b) ----
+pars <- c("theta", "cases_pred")
+nsim <- 10000
+sam_c <- coda.samples(mod_jag, pars, n.iter=nsim)
+# This is a matrix with rows for samples, and columns for different variables.
+sam_m <- sam_c[[1]]
+
+## 3 Summarizing samples from a model ----
+cases_pred <- sam_m[,"cases_pred"]
+quantile(cases_pred, c(0.025, 0.975))
+quantile(sam_m[,"theta"], c(0.025, 0.975))
