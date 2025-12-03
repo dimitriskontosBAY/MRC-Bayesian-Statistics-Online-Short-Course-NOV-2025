@@ -64,9 +64,9 @@ beta_dist(0.1, 0.02, 0.2, ci_width=0.5)
 
 
 # 2 Practical session (2): predictions and decisions ----
-install.packages("BiocManager")
-BiocManager::install("Biobase")
-install.packages("TailRank")
+#install.packages("BiocManager")
+#BiocManager::install("Biobase")
+#install.packages("TailRank")
 library(TailRank)
 
 ## 1 ----
@@ -159,3 +159,4 @@ sam_m <- sam_c[[1]]
 cases_pred <- sam_m[,"cases_pred"]
 quantile(cases_pred, c(0.025, 0.975))
 quantile(sam_m[,"theta"], c(0.025, 0.975))
+mean(cases_pred < 20)
